@@ -46,6 +46,8 @@ from src.Pocky.verifyAccount import verifyAccount
 
 ## API Reference
 
+---
+
 ### `getCode(username: str) -> dict`
 
 Generates a unique verification code for a given username.
@@ -53,7 +55,7 @@ Generates a unique verification code for a given username.
 #### Example
 
 ```python
-response = getCode("username")
+response = getCode("Coach")
 print(response)
 ```
 
@@ -61,8 +63,10 @@ print(response)
 
 ```json
 {
-  "success": true,
-  "code": "ABC123"
+  "ok": true,
+  "username": "Coach",
+  "code": "Banana",
+  "expiry": "2026-02-15T14:32:10Z"
 }
 ```
 
@@ -70,12 +74,13 @@ print(response)
 
 ### `verifyAccount(username: str) -> dict`
 
-Checks whether the generated verification code exists in the user's bio.
+Checks whether the generated verification code exists in the user's bio.  
+If verification succeeds, a session token is issued.
 
 #### Example
 
 ```python
-response = verifyAccount("username")
+response = verifyAccount("Coach")
 print(response)
 ```
 
@@ -83,7 +88,10 @@ print(response)
 
 ```json
 {
-  "verified": true
+  "ok": true,
+  "username": "Coach",
+  "sessionToken": "abc123xyz456",
+  "expiry": "2026-02-15T15:32:10Z"
 }
 ```
 
@@ -96,7 +104,7 @@ Retrieves the account associated with a verification code.
 #### Example
 
 ```python
-response = checkCode("ABC123")
+response = checkCode("Banana")
 print(response)
 ```
 
@@ -104,8 +112,10 @@ print(response)
 
 ```json
 {
-  "username": "exampleUser",
-  "valid": true
+  "ok": true,
+  "username": "Coach",
+  "accountId": "1",
+  "expiry": "2026-02-15T14:32:10Z"
 }
 ```
 
@@ -114,10 +124,14 @@ print(response)
 ## End-to-End Example
 
 ```python
-username = "exampleUser"
+username = "Coach"
 
 # Step 1: Generate verification code
 code_data = getCode(username)
+
+if not code_data["ok"]:
+    raise Exception("Failed to generate code")
+
 code = code_data["code"]
 
 print("Verification code:", code)
@@ -126,18 +140,9 @@ print("Ask the user to place this code in their bio.")
 # Step 2: After user updates bio, verify ownership
 verification = verifyAccount(username)
 
-if verification.get("verified"):
+if verification.get("ok"):
     print("User successfully verified.")
+    print("Session Token:", verification["sessionToken"])
 else:
     print("Verification failed.")
 ```
-
----
-
-## Security Considerations
-
-- No passwords or authentication tokens are collected.
-- Verification relies solely on user-controlled profile metadata.
-- Codes should be treated as temporary and rotated appropriately.
-- Avoid storing verification codes indefinitely.
-
